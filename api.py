@@ -64,6 +64,16 @@ def listar_livros():
 def pagina_inicial():
     return "Bem-vindo à Biblioteca Online!"
 
+@app.route("/livros/<int:id>", methods=["DELETE"])
+def deletar_livro(id):
+    with sqlite3.connect("database.db") as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM LIVROS WHERE id = ?", (id,))  # Passando o 'id' corretamente
+        conn.commit()
+    
+    return jsonify({"mensagem": "Livro excluído com sucesso"}), 200
+
+
 if __name__ == "__main__":
     print("Servidor rodando em http://127.0.0.1:5000")
     app.run(debug=True)
