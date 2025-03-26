@@ -3,12 +3,10 @@ import sqlite3
 
 app = Flask(__name__)
 
-@app.route("/pagar")
-def exibir_mensagem():
-    return "Pagamento realizado com sucesso!"
 
 def init_db():
     with sqlite3.connect("database.db") as conn:
+        conn.execute("PRAGMA foreign_keys = ON;")
         conn.execute("""
             CREATE TABLE IF NOT EXISTS LIVROS(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,14 +16,14 @@ def init_db():
                 image_url TEXT NOT NULL
             )
         """)
-
 init_db()
 
 @app.route("/doar", methods=["POST"])
 def doar():
     dados = request.get_json()
     
-    print("JSON recebido:", dados)
+    print(f"AQUI ESTÃO OS DADOS RETORNADOS DO CLIENTE {dados}")
+
 
     titulo = dados.get("titulo")
     categoria = dados.get("categoria")
@@ -68,9 +66,15 @@ def pagina_inicial():
 def deletar_livro(id):
     with sqlite3.connect("database.db") as conn:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM LIVROS WHERE id = ?", (id,))  # Passando o 'id' corretamente
+        cursor.execute("SELECT * FROM LIVROS WHERE id = ?", (id,))
+        livro = cursor.fetchone()
+
+        if not livro:
+            return jsonify({"erro": "Livro não encontrado"}), 404
+
+        cursor.execute("DELETE FROM LIVROS WHERE id = ?", (id,))
         conn.commit()
-    
+
     return jsonify({"mensagem": "Livro excluído com sucesso"}), 200
 
 
